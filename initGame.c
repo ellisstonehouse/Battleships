@@ -3,6 +3,7 @@
 #include <stdlib.h>
 #include <math.h>
 #include <stdbool.h>
+#include <time.h>
 
 #include "game.h"
 #include "initGame.h"
@@ -11,7 +12,10 @@
 
 int placeShip( int shipLength, char rotation, int x, int y,  char** board, int boardSize ) {
 
-  // reject if ship doesn't fit on grid
+  // reject if negative coordinates
+  if ( x < 0 || y < 0 ) {
+    return 0;
+  }
 
 
   char ship;
@@ -23,9 +27,9 @@ int placeShip( int shipLength, char rotation, int x, int y,  char** board, int b
   }
 
   // reject if area alrady in use
-  if (rotation == 'v') {
+  if ( rotation == 'v' ) {
 
-    if ( y+shipLength-1 > 9 ) {
+    if ( x+shipLength-1 > 9 ) {
       return 0;
     }
 
@@ -38,9 +42,9 @@ int placeShip( int shipLength, char rotation, int x, int y,  char** board, int b
       board[x+k][y] = ship;
     }
   }
-  else if (rotation == 'h') {
+  else if ( rotation == 'h' ) {
 
-    if ( x+shipLength-1 > 9 ) {
+    if ( y+shipLength-1 > 9 ) {
       return 0;
     }
 
@@ -78,7 +82,6 @@ void initShipsChoose( char** board, int boardSize ) {
   for (int i = 5; i > 1; i--) {
     char rotation;
     int x, y;
-
   
     while(true) {
 
@@ -105,7 +108,6 @@ void initShipsChoose( char** board, int boardSize ) {
       }
 
       break;
-
     }
   }
 
@@ -114,6 +116,28 @@ void initShipsChoose( char** board, int boardSize ) {
 }
 
 void initShipsRandom(char** board, int boardSize) {
+
+  char rotations[2] = { 'v' , 'h' };
+
+  srand(time(0));
+
+  for (int i = 5; i > 1; i--) {
+
+    while(true) {
+
+      int rotation = rand() % 2;
+      int x = rand() % 10;
+      int y = rand() % 10;
+
+      if (!placeShip( i, rotations[rotation], x, y, board, boardSize )) {
+        continue;
+      }
+
+      break;
+    }
+  }
+
+  printBoard(board, 10);
 
 }
 
@@ -124,7 +148,8 @@ Game *initGame( int mode ) {
   game->board1 = createBoard(10);
   game->board2 = createBoard(10);
 
-  initShipsChoose(game->board1, 10);
+  //initShipsChoose(game->board1, 10);
+  initShipsRandom(game->board1, 10);
 
   game->maxTurns = 100;
   game->turns = 0;
