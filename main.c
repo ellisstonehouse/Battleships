@@ -22,7 +22,7 @@ int main( int argc, char *argv[] ) {
   // creates pointer for game structure
   Game *game = initGame(mode); 
 
-  // playGame(game);
+  playGame(game);
 
   freeGame(game);
 

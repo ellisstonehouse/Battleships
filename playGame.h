@@ -1,11 +1,9 @@
 
 void playGame( Game *game );
 
-void printBoard( char** board, int boardSize);
+void printBoard( Board* board);
 
-void printBoard2( char** board1, char** board2, int boardSize);
+void printBoard2( Board* board1, Board* board2);
 
-int makeMove( Game *game, char symbol );
-
-int winGame( char** board, int boardSize, char symbol );
+int winGame( Board* board );
 
