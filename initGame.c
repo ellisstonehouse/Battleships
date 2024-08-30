@@ -174,6 +174,7 @@ Game *initGame( int mode ) {
     initShipsRandom(game->aiBoard);
   }
 
+  game->mode = mode;
   game->maxTurns = 10*10;
   
   return game;

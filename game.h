@@ -12,5 +12,6 @@ typedef struct _board {
 typedef struct _game {
   Board* userBoard;    // Player1's Board
   Board* aiBoard;    // Player2's Board
+  int mode;
   int maxTurns;
 } Game;
