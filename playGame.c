@@ -1,8 +1,11 @@
 
 #include <stdio.h>
+#include <stdbool.h>
 
 #include "game.h"
 #include "playGame.h"
+#include "initGame.h"
+#include "aiMoves.h"
 
 #define USER 0
 #define AI 1
@@ -11,24 +14,36 @@ void playGame( Game *game ) {
 
   printBoard2(game->userBoard, game->aiBoard);
 
-  for (int round=1; round<=2; round++) {
+  int* move;
+
+  for (int round=1; round<=game->maxTurns; round++) {
 
     printf("Round %d:\n", round);
 
-    printf("Player User: Enter your move as row column values:\n");
+    // ----------
+    Board* maskedAiBoard = maskBoard(game->aiBoard);
 
-    int moveRejected = makeMove(game->aiBoard, userMove());
-    while(moveRejected) {
-      printf("Move rejected. Please try again\n");
-      moveRejected = makeMove(game->aiBoard, userMove());
+    printBoard2(game->userBoard, maskedAiBoard);
+
+    move = userMove(maskedAiBoard); //takes in the masked board as arg
+
+    freeBoard(maskedAiBoard);
+    // ----------
+
+    if (!acceptMove(game->aiBoard, move)) { // takes in the real board here
+      printf("Error occured\n");
+      break;
     }
 
-    // turnResult(game->userBoard);
 
-    // if (winGame(game->userBoard)) {
-    //   printf("User has won\n");
-    //   break;
-    // }
+    if (winGame(game->userBoard)) {
+      printf("User has won\n");
+      break;
+    }
+
+    Board* maskedUserBoard = maskBoard(game->userBoard);
+
+    move = aiMove(maskedUserBoard, game->mode);
 
     printBoard2(game->userBoard, game->aiBoard);
 
@@ -89,46 +104,57 @@ void printBoard2( Board* board1, Board* board2) {
   return;
 }
 
-int* userMove() {
+int* userMove(Board* board) {
 
   static int move[2];
+  int x, y;
 
-  if (!scanf(" %d %d", &move[0], &move[1])) {
-    move[0] = 0;
-    move[1] = 0;
-  }
+  while(true) {
 
-  return move;
+      printf("Enter your move as row column values:\n");
+
+      if (!scanf(" %d %d", &x, &y)) {
+        printf("ERROR! Incorrect coordinates\n");
+        continue;
+      }
+
+      if ( x < 0 || board->boardSize < x || y < 0 || board->boardSize < y ) {
+        printf("ERROR! Incorrect coordinates\n");
+        continue;
+      }
+
+      if (board->grid[x][y] == '*') {
+        printf("ERROR! Incorrect coordinates\n");
+        continue;
+      }
+      else {
+        board->grid[x][y] = '*';
+      }
+
+      break;
+    }
+
+    move[0] = x;
+    move[1] = y;
+
+    return move;
 }
 
 
-int makeMove( Board* board, int* move ) {
+int acceptMove( Board* board, int* move ) {
 
-  int x = move[0];
-  int y = move[1];
+  int a=false, b=false, s=false, c=false, d=false;
 
-  if (board->grid[x][y] == '*') {
-    return 1;
-  }
-  else {
-    board->grid[x][y] = '*';
-  }
-
-  return 0;
-}
-
-int turnResult( Board* board ) {
-
-  int a=1,b=1,s=1,c=1,d=1;
+  board->grid[move[0]][move[1]] = '*';
 
   for (int x=0; x<board->boardSize; x++) {
     for (int y=0; y<board->boardSize; y++) {
       switch (board->grid[x][y]) {
-      case 'A': a = 0; break;
-      case 'B': b = 0; break;
-      case 'S': s = 0; break;
-      case 'C': c = 0; break;
-      case 'D': d = 0; break;
+      case 'A': a = true; break;
+      case 'B': b = true; break;
+      case 'S': s = true; break;
+      case 'C': c = true; break;
+      case 'D': d = true; break;
       default: break;
       }
     }
@@ -136,6 +162,8 @@ int turnResult( Board* board ) {
 
   if (board->Aircraft_Carrier != a) {
     // somehow got to target player name
+    printf("Airship Carrier has been sunk\n");
+    board->Aircraft_Carrier = false;
   }
   if (board->Battleship != b) {
   }

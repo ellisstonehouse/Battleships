@@ -2,8 +2,8 @@
 # code details
 
 EXE = ./Battleships
-SRC = main.c initGame.c playGame.c
-OBJ = main.o initGame.o playGame.o
+SRC = main.c initGame.c playGame.c aiMoves.c
+OBJ = main.o initGame.o playGame.o aiMoves.o
 
 # generic build details
 

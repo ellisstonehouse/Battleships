@@ -64,7 +64,7 @@ int placeShip( char ship, char rotation, int x, int y,  Board* board ) {
   return 1;
 }
 
-Board *createBoard(int boardSize) {
+Board* createBoard(int boardSize) {
 
   Board *board = (Board *)malloc(sizeof(Board));
 
@@ -87,6 +87,38 @@ Board *createBoard(int boardSize) {
   board->Cruiser = true;
 
   return board;
+}
+
+Board* maskBoard(Board* board) {
+
+  Board *maskedBoard = (Board *)malloc(sizeof(Board));
+
+  maskedBoard->grid = malloc(sizeof(char* ) * board->boardSize);
+  for (int i = 0; i < board->boardSize; i++) {
+    maskedBoard->grid[i] = malloc(sizeof(char ) * board->boardSize);
+  }
+
+  for (int i = 0; i < board->boardSize; i++) {
+    for (int j = 0; j < board->boardSize; j++) {
+      if (board->grid[i][j] == '*') {
+        maskedBoard->grid[i][j] = '*';
+      }
+      else {
+        maskedBoard->grid[i][j] = '.';
+      }
+    }
+  }
+
+  maskedBoard->boardSize = board->boardSize;
+
+  //-- This information is un needed
+  // maskedBoard->Aircraft_Carrier = true;
+  // maskedBoard->Battleship = true;
+  // maskedBoard->Submarine = true;
+  // maskedBoard->Aircraft_Carrier = true;
+  // maskedBoard->Cruiser = true;
+
+  return maskedBoard;
 }
 
 void initShipsChoose( Board* board) {
@@ -180,6 +212,17 @@ Game *initGame( int mode ) {
   return game;
 }
 
+void freeBoard( Board *board ) {
+
+  for (int i = 0; i < board->boardSize; i++) {
+    free(board->grid[i]);
+  }
+  free(board->grid);
+
+  free(board);
+}
+
+// edit to accept board freeing
 void freeGame( Game *game ) {
 
   for (int i = 0; i < game->userBoard->boardSize; i++) {
