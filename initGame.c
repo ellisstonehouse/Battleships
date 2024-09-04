@@ -13,26 +13,24 @@
 #define TESTING 0
 
 
-int placeShip( char ship, char rotation, int x, int y,  Board* board ) {
+int placeShip( int ship, char rotation, int x, int y,  Board* board ) {
 
   // reject if negative coordinates
   if ( x < 0 || y < 0 ) {
     return 0;
   }
 
-  int shipLength;
-  switch (ship) {
-    case 'A': shipLength = 5; break;
-    case 'B': shipLength = 4; break;
-    case 'S': shipLength = 3; break;
-    case 'C': shipLength = 3; break;
-    case 'D': shipLength = 2; break;
-  }
 
-  // reject if area alrady in use
+  int shipLength = board->fleet[ship]->size;
+  char ID = board->fleet[ship]->id;
+
+
+
+  // reject if area aleady in use
   if ( rotation == 'v' ) {
 
     if ( x+shipLength > board->boardSize ) {
+      
       return 0;
     }
 
@@ -42,7 +40,7 @@ int placeShip( char ship, char rotation, int x, int y,  Board* board ) {
       }
     }
     for (int k=0; k<shipLength; k++) {
-      board->grid[x+k][y] = ship;
+      board->grid[x+k][y] = ID;
     }
   }
   else if ( rotation == 'h' ) {
@@ -57,16 +55,34 @@ int placeShip( char ship, char rotation, int x, int y,  Board* board ) {
       }
     }
     for (int k=0; k<shipLength; k++) {
-      board->grid[x][y+k] = ship;
+      board->grid[x][y+k] = ID;
     }
   }
+
+  board->fleet[ship]->x = x;
+  board->fleet[ship]->y = y;
+  board->fleet[ship]->rotation = rotation;
+
 
   return 1;
 }
 
+Ship* createShip(char ID, int size) {
+
+  Ship* new_ship = (Ship*)malloc(sizeof(Ship));
+
+  new_ship->id = ID;
+  new_ship->size = size;
+  new_ship->afloat = true;
+  
+
+  return new_ship;
+
+}
+
 Board* createBoard(int boardSize) {
 
-  Board *board = (Board *)malloc(sizeof(Board));
+  Board* board = (Board*)malloc(sizeof(Board));
 
   board->grid = malloc(sizeof(char* ) * boardSize);
   for (int i = 0; i < boardSize; i++) {
@@ -80,54 +96,57 @@ Board* createBoard(int boardSize) {
   }
   board->boardSize = boardSize;
 
-  board->Aircraft_Carrier = true;
-  board->Battleship = true;
-  board->Submarine = true;
-  board->Cruiser = true;
-  board->Destroyer = true;
+  board->fleetSize = 5;
+
+  board->fleet = malloc(sizeof(Ship*) * board->fleetSize);
+
+  board->fleet[0] = createShip('A', 5); // Aircraft Carrier
+  board->fleet[1] = createShip('B', 4); // Battleship
+  board->fleet[2] = createShip('S', 3); // Submarine
+  board->fleet[3] = createShip('C', 3); // Cruiser
+  board->fleet[4] = createShip('D', 2); // Destroyer
+
 
   return board;
 }
 
-Board* maskBoard(Board* board) {
+// Board* maskBoard(Board* board) {
 
-  Board *maskedBoard = (Board *)malloc(sizeof(Board));
+//   Board *maskedBoard = (Board *)malloc(sizeof(Board));
 
-  maskedBoard->grid = malloc(sizeof(char* ) * board->boardSize);
-  for (int i = 0; i < board->boardSize; i++) {
-    maskedBoard->grid[i] = malloc(sizeof(char ) * board->boardSize);
-  }
+//   maskedBoard->grid = malloc(sizeof(char* ) * board->boardSize);
+//   for (int i = 0; i < board->boardSize; i++) {
+//     maskedBoard->grid[i] = malloc(sizeof(char ) * board->boardSize);
+//   }
 
-  for (int i = 0; i < board->boardSize; i++) {
-    for (int j = 0; j < board->boardSize; j++) {
-      if (board->grid[i][j] == '*') {
-        maskedBoard->grid[i][j] = '*';
-      }
-      else if (board->grid[i][j] == 'x') {
-        maskedBoard->grid[i][j] = 'x';
-      }
-      else {
-        maskedBoard->grid[i][j] = '.';
-      }
-    }
-  }
+//   for (int i = 0; i < board->boardSize; i++) {
+//     for (int j = 0; j < board->boardSize; j++) {
+//       if (board->grid[i][j] == '*') {
+//         maskedBoard->grid[i][j] = '*';
+//       }
+//       else if (board->grid[i][j] == 'x') {
+//         maskedBoard->grid[i][j] = 'x';
+//       }
+//       else {
+//         maskedBoard->grid[i][j] = '.';
+//       }
+//     }
+//   }
 
-  maskedBoard->boardSize = board->boardSize;
+//   maskedBoard->boardSize = board->boardSize;
 
-  maskedBoard->Aircraft_Carrier = board->Aircraft_Carrier;
-  maskedBoard->Battleship = board->Battleship;
-  maskedBoard->Submarine = board->Submarine;
-  maskedBoard->Cruiser = board->Cruiser;
-  maskedBoard->Destroyer = board->Destroyer;
+//   maskedBoard->Aircraft_Carrier = board->Aircraft_Carrier;
+//   maskedBoard->Battleship = board->Battleship;
+//   maskedBoard->Submarine = board->Submarine;
+//   maskedBoard->Cruiser = board->Cruiser;
+//   maskedBoard->Destroyer = board->Destroyer;
 
-  return maskedBoard;
-}
+//   return maskedBoard;
+// }
 
 void initShipsChoose( Board* board) {
 
-  static char ship[5] = {'A', 'B', 'S', 'C', 'D'};
-
-  for (int i = 0; i < 5; i++) {
+  for (int ship = 0; ship < board->fleetSize; ship++) {
     char rotation;
     int x, y;
   
@@ -151,7 +170,7 @@ void initShipsChoose( Board* board) {
         continue;
       }
 
-      if (!placeShip( ship[i], rotation, x, y, board )) {
+      if (!placeShip( ship, rotation, x, y, board )) {
         printf("ERROR! Incorrect coordinates\n");
         continue;
       }
@@ -167,12 +186,11 @@ void initShipsChoose( Board* board) {
 void initShipsRandom(Board* board) {
 
   static char rotations[2] = { 'v' , 'h' };
-  static char ship[5] = {'A', 'B', 'S', 'C', 'D'};
 
   srand((unsigned int)clock()); // only use clock when testing
   // srand(time(0));
 
-  for (int i = 0; i < 5; i++) {
+  for (int fleetIndex = 0; fleetIndex < 5; fleetIndex++) {
 
     while(true) {
 
@@ -180,9 +198,10 @@ void initShipsRandom(Board* board) {
       int x = rand() % board->boardSize;
       int y = rand() % board->boardSize;
 
-      if (!placeShip( ship[i], rotations[rotation], x, y, board )) {
+      if (!placeShip( fleetIndex, rotations[rotation], x, y, board )) {
         continue;
       }
+      
 
       break;
     }
@@ -211,6 +230,8 @@ Game *initGame( int mode ) {
 
   game->mode = mode;
   game->maxTurns = 10*10;
+
+  
   
   return game;
 }

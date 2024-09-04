@@ -47,29 +47,23 @@ int* randomShooting(Board* board) {
 
   while(true) {
 
-      srand((unsigned int)clock()); // only use clock when testing
-      // srand(time(0));
+    srand((unsigned int)clock()); // only use clock when testing
+    // srand(time(0));
 
-      x = rand() % board->boardSize;
-      y = rand() % board->boardSize;
+    x = rand() % board->boardSize;
+    y = rand() % board->boardSize;
 
-      if (board->grid[x][y] == '*' || board->grid[x][y] == 'x') {
-        continue;
-      }
-      else if (board->grid[x][y] == '.') {
-        board->grid[x][y] = 'x';
-      }
-      else {
-        board->grid[x][y] = '*';
-      }
-
-      break;
+    if (board->grid[x][y] == '*' || board->grid[x][y] == 'x' || board->grid[x][y] == '#') {
+      continue;
     }
 
-    move[0] = x;
-    move[1] = y;
+    break;
+  }
 
-    return move;
+  move[0] = x;
+  move[1] = y;
+
+  return move;
 }
 
 
@@ -83,22 +77,22 @@ int* hunt(Board* board) {
 
         if (board->grid[x][y] == '*') {
           // Above HIT
-          if (0 <= x-1 && board->grid[x-1][y] == '.') {
+          if (0 <= x-1 && board->grid[x-1][y] != '*' && board->grid[x-1][y] != 'x' && board->grid[x-1][y] != '#') {
             move[0] = x-1; move[1] = y;
             return move;
           }
           // Below HIT
-          if (x+1 < board->boardSize && board->grid[x+1][y] == '.') {
+          if (x+1 < board->boardSize && board->grid[x+1][y] != '*' && board->grid[x+1][y] != 'x' && board->grid[x+1][y] != '#') {
             move[0] = x+1; move[1] = y;
             return move;
           }
           // Right of HIT
-          if (y+1 < board->boardSize && board->grid[x][y+1] == '.') {
+          if (y+1 < board->boardSize && board->grid[x][y+1] != '*' && board->grid[x][y+1] != 'x' && board->grid[x][y+1] != '#') {
             move[0] = x; move[1] = y+1;
             return move;
           }
           // Left of HIT
-          if (0 <= y-1 && board->grid[x][y-1] == '.') {
+          if (0 <= y-1 && board->grid[x][y-1] != '*' && board->grid[x][y-1] != 'x' && board->grid[x][y-1] != '#') {
             move[0] = x; move[1] = y-1;
             return move;
           }
@@ -107,16 +101,54 @@ int* hunt(Board* board) {
     }
   }
 
-
   return randomShooting(board);
 }
 
 int* huntParity(Board* board) {
 
-  return randomShooting(board);
+  static int move[2];
+
+  for (int x = 0; x < board->boardSize; x++) {
+    for (int y = 0; y < board->boardSize; y++) {
+
+        if (board->grid[x][y] == '*') {
+          // Above HIT
+          if (0 <= x-1 && board->grid[x-1][y] != '*' && board->grid[x-1][y] != 'x' && board->grid[x-1][y] != '#') {
+            move[0] = x-1; move[1] = y;
+            return move;
+          }
+          // Below HIT
+          if (x+1 < board->boardSize && board->grid[x+1][y] != '*' && board->grid[x+1][y] != 'x' && board->grid[x+1][y] != '#') {
+            move[0] = x+1; move[1] = y;
+            return move;
+          }
+          // Right of HIT
+          if (y+1 < board->boardSize && board->grid[x][y+1] != '*' && board->grid[x][y+1] != 'x' && board->grid[x][y+1] != '#') {
+            move[0] = x; move[1] = y+1;
+            return move;
+          }
+          // Left of HIT
+          if (0 <= y-1 && board->grid[x][y-1] != '*' && board->grid[x][y-1] != 'x' && board->grid[x][y-1] != '#') {
+            move[0] = x; move[1] = y-1;
+            return move;
+          }
+        }
+
+    }
+  }
+
+  int* rMove = randomShooting(board);
+
+  while (rMove[0]%2 == rMove[1]%2) {
+    rMove = randomShooting(board);
+  }
+
+  return rMove;
 }
 
 int* probabilityDensity(Board* board) {
+
+  
   
   return randomShooting(board);
 }
