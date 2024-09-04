@@ -83,8 +83,8 @@ Board* createBoard(int boardSize) {
   board->Aircraft_Carrier = true;
   board->Battleship = true;
   board->Submarine = true;
-  board->Aircraft_Carrier = true;
   board->Cruiser = true;
+  board->Destroyer = true;
 
   return board;
 }
@@ -103,6 +103,9 @@ Board* maskBoard(Board* board) {
       if (board->grid[i][j] == '*') {
         maskedBoard->grid[i][j] = '*';
       }
+      else if (board->grid[i][j] == 'x') {
+        maskedBoard->grid[i][j] = 'x';
+      }
       else {
         maskedBoard->grid[i][j] = '.';
       }
@@ -111,12 +114,11 @@ Board* maskBoard(Board* board) {
 
   maskedBoard->boardSize = board->boardSize;
 
-  //-- This information is un needed
-  // maskedBoard->Aircraft_Carrier = true;
-  // maskedBoard->Battleship = true;
-  // maskedBoard->Submarine = true;
-  // maskedBoard->Aircraft_Carrier = true;
-  // maskedBoard->Cruiser = true;
+  maskedBoard->Aircraft_Carrier = board->Aircraft_Carrier;
+  maskedBoard->Battleship = board->Battleship;
+  maskedBoard->Submarine = board->Submarine;
+  maskedBoard->Cruiser = board->Cruiser;
+  maskedBoard->Destroyer = board->Destroyer;
 
   return maskedBoard;
 }
@@ -202,7 +204,8 @@ Game *initGame( int mode ) {
     initShipsRandom(game->aiBoard);
   }
   else {
-    initShipsChoose(game->userBoard);
+    initShipsRandom(game->userBoard);
+    // initShipsChoose(game->userBoard);
     initShipsRandom(game->aiBoard);
   }
 
@@ -225,18 +228,8 @@ void freeBoard( Board *board ) {
 // edit to accept board freeing
 void freeGame( Game *game ) {
 
-  for (int i = 0; i < game->userBoard->boardSize; i++) {
-    free(game->userBoard->grid[i]);
-  }
-  free(game->userBoard->grid);
-
-  for (int i = 0; i < game->aiBoard->boardSize; i++) {
-    free(game->aiBoard->grid[i]);
-  }
-  free(game->aiBoard->grid);
-
-  free(game->userBoard);
-  free(game->aiBoard);
+  freeBoard(game->userBoard);
+  freeBoard(game->aiBoard);
 
   free(game);
 }

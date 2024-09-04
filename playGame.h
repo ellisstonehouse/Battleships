@@ -5,11 +5,9 @@ void printBoard( Board* board);
 
 void printBoard2( Board* board1, Board* board2);
 
-int acceptMove( Board* board, int* move );
-
-int makeMove( Board* board, int* move );
+int acceptMove( Board* board, Board* maskedBoard, int* move );
 
 int* userMove( Board* board);
 
-int winGame( Board* board );
+int fleetDefeated( Board* board );
 

@@ -18,34 +18,50 @@ void playGame( Game *game ) {
 
   for (int round=1; round<=game->maxTurns; round++) {
 
-    printf("Round %d:\n", round);
+    printf("Round %d:\n\n", round);
 
-    // ----------
+    // -------------------------------------------
+    printf("User:\n");
+
     Board* maskedAiBoard = maskBoard(game->aiBoard);
-
-    printBoard2(game->userBoard, maskedAiBoard);
 
     move = userMove(maskedAiBoard); //takes in the masked board as arg
 
-    freeBoard(maskedAiBoard);
-    // ----------
-
-    if (!acceptMove(game->aiBoard, move)) { // takes in the real board here
+    if (!acceptMove(game->aiBoard, maskedAiBoard, move)) { // takes in the real board here
       printf("Error occured\n");
       break;
     }
 
+    //printBoard2(game->userBoard, maskedAiBoard);
 
-    if (winGame(game->userBoard)) {
+    freeBoard(maskedAiBoard);
+
+    if (fleetDefeated(game->aiBoard)) {
+      printBoard2(game->userBoard, maskedAiBoard);
       printf("User has won\n");
       break;
     }
+
+    // -----------------------------------------
+    printf("Opponent:\n");
 
     Board* maskedUserBoard = maskBoard(game->userBoard);
 
     move = aiMove(maskedUserBoard, game->mode);
 
+    if (!acceptMove(game->userBoard, maskedUserBoard, move)) { // takes in the real board here
+      printf("Error occured\n");
+      break;
+    }
+
     printBoard2(game->userBoard, game->aiBoard);
+
+    freeBoard(maskedUserBoard);
+
+    if (fleetDefeated(game->userBoard)) {
+      printf("AI has won\n");
+      break;
+    }
 
   }
  
@@ -101,6 +117,9 @@ void printBoard2( Board* board1, Board* board2) {
   }
   printf("\n");
 
+  printf("     A:%d B:%d S:%d C:%d D:%d         ", board1->Aircraft_Carrier, board1->Battleship, board1->Submarine, board1->Cruiser, board1->Destroyer);
+  printf("     A:%d B:%d S:%d C:%d D:%d\n\n", board2->Aircraft_Carrier, board2->Battleship, board2->Submarine, board2->Cruiser, board2->Destroyer);
+
   return;
 }
 
@@ -113,7 +132,9 @@ int* userMove(Board* board) {
 
       printf("Enter your move as row column values:\n");
 
-      if (!scanf(" %d %d", &x, &y)) {
+      int accept = scanf(" %d %d", &x, &y);
+
+      if (!accept) {
         printf("ERROR! Incorrect coordinates\n");
         continue;
       }
@@ -123,12 +144,9 @@ int* userMove(Board* board) {
         continue;
       }
 
-      if (board->grid[x][y] == '*') {
+      if (board->grid[x][y] == '*' || board->grid[x][y] == 'x') {
         printf("ERROR! Incorrect coordinates\n");
         continue;
-      }
-      else {
-        board->grid[x][y] = '*';
       }
 
       break;
@@ -141,11 +159,23 @@ int* userMove(Board* board) {
 }
 
 
-int acceptMove( Board* board, int* move ) {
+int acceptMove( Board* board, Board* maskedBoard, int* move ) {
 
   int a=false, b=false, s=false, c=false, d=false;
 
-  board->grid[move[0]][move[1]] = '*';
+  // if it was a ship that it hit, do another symbol 'X' maybe ??
+  if (board->grid[move[0]][move[1]] == '*' || board->grid[move[0]][move[1]] == 'x') {
+    return 0;
+  }
+  else if (board->grid[move[0]][move[1]] == '.') {
+    board->grid[move[0]][move[1]] = 'x';
+    maskedBoard->grid[move[0]][move[1]] = 'x';
+  }
+  else {
+    board->grid[move[0]][move[1]] = '*';
+    maskedBoard->grid[move[0]][move[1]] = '*';
+  }
+
 
   for (int x=0; x<board->boardSize; x++) {
     for (int y=0; y<board->boardSize; y++) {
@@ -166,25 +196,29 @@ int acceptMove( Board* board, int* move ) {
     board->Aircraft_Carrier = false;
   }
   if (board->Battleship != b) {
+    printf("Battleship has been sunk\n");
+    board->Battleship = false;
   }
   if (board->Submarine != s) {
+    printf("Submarine has been sunk\n");
+    board->Submarine = false;
   }
   if (board->Cruiser != c) {
+    printf("Cruiser has been sunk\n");
+    board->Cruiser = false;
   }
   if (board->Destroyer != d) {
+    printf("Destroyer has been sunk\n");
+    board->Destroyer = false;
   }
 
   return 1;
 }
 
-int winGame( Board* board ) {
+int fleetDefeated( Board* board ) {
 
-  for (int x=0; x<board->boardSize; x++) {
-    for (int y=0; y<board->boardSize; y++) {
-      if (board->grid[x][y]=='A' || board->grid[x][y]=='B' || board->grid[x][y]=='S' || board->grid[x][y]=='C' || board->grid[x][y]=='D') {
-        return 0;
-      }
-    }
+  if (board->Aircraft_Carrier || board->Battleship || board->Submarine || board->Cruiser || board->Destroyer) {
+    return 0;
   }
 
   return 1;

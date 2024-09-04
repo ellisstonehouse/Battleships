@@ -12,7 +12,7 @@ int main( int argc, char *argv[] ) {
   int mode;
 
   printf(
-    "\n 0 - 2-player | 1 - Easy AI | 2 - Medium AI | 3 - Hard AI\n\n"
+    "\n 0 - TEST | 1 - Random | 2 - Hunt | 3 - Hunt Parity | 4 - Main Algo\n\n"
     "Select a mode: ");
 
   if (!scanf(" %d", &mode)) {

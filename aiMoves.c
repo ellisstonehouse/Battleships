@@ -21,6 +21,9 @@ int* aiMove(Board* board, int mode) {
 
   switch (mode) {
 
+  case TESTING_RANDOM:
+    return randomShooting(board);
+
   case RANDOM_SHOOTING:
     return randomShooting(board);
   
@@ -34,7 +37,7 @@ int* aiMove(Board* board, int mode) {
     return probabilityDensity(board);
   
   default:
-    break;
+    return randomShooting(board);
   }
 }
 
@@ -50,9 +53,11 @@ int* randomShooting(Board* board) {
       x = rand() % board->boardSize;
       y = rand() % board->boardSize;
 
-      if (board->grid[x][y] == '*') {
-        printf("ERROR! Incorrect coordinates\n");
+      if (board->grid[x][y] == '*' || board->grid[x][y] == 'x') {
         continue;
+      }
+      else if (board->grid[x][y] == '.') {
+        board->grid[x][y] = 'x';
       }
       else {
         board->grid[x][y] = '*';
@@ -70,10 +75,48 @@ int* randomShooting(Board* board) {
 
 
 int* hunt(Board* board) {
+
+  static int move[2];
+
+  for (int x = 0; x < board->boardSize; x++) {
+    for (int y = 0; y < board->boardSize; y++) {
+
+        if (board->grid[x][y] == '*') {
+          // Above HIT
+          if (0 <= x-1 && board->grid[x-1][y] == '.') {
+            move[0] = x-1; move[1] = y;
+            return move;
+          }
+          // Below HIT
+          if (x+1 < board->boardSize && board->grid[x+1][y] == '.') {
+            move[0] = x+1; move[1] = y;
+            return move;
+          }
+          // Right of HIT
+          if (y+1 < board->boardSize && board->grid[x][y+1] == '.') {
+            move[0] = x; move[1] = y+1;
+            return move;
+          }
+          // Left of HIT
+          if (0 <= y-1 && board->grid[x][y-1] == '.') {
+            move[0] = x; move[1] = y-1;
+            return move;
+          }
+        }
+
+    }
+  }
+
+
+  return randomShooting(board);
 }
 
 int* huntParity(Board* board) {
+
+  return randomShooting(board);
 }
 
 int* probabilityDensity(Board* board) {
+  
+  return randomShooting(board);
 }
