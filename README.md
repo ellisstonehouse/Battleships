@@ -1,6 +1,6 @@
 # Battleships
 
-An implimentation of the game Battleships with an AI opponent. The opponent is able to play using a chosen algorihtm from 4, with each having a higher win rate than the last.
+An implementation of the game Battleships with an AI opponent. The opponent can play using a chosen algorithm from 4, each having a higher win rate than the last.
 
 The game is set up using the basic 10x10 board with 5 ships, 
 - Aircraft Carrier (5 squares, A)
