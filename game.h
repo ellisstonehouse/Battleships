@@ -1,8 +1,17 @@
 
-typedef struct _game {
-  char** board1;    // Player1's Board
-  char** board2;    // Player2's Board
-  int maxTurns;
-  int turns;
-} Game;
+typedef struct _board {
+  char** grid;
+  int boardSize;
+  int Aircraft_Carrier;
+  int Battleship;
+  int Submarine;
+  int Cruiser;
+  int Destroyer;
+} Board;
 
+typedef struct _game {
+  Board* userBoard;    // Player1's Board
+  Board* aiBoard;    // Player2's Board
+  int mode;
+  int maxTurns;
+} Game;
