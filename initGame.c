@@ -190,7 +190,7 @@ void initShipsRandom(Board* board) {
   srand((unsigned int)clock()); // only use clock when testing
   // srand(time(0));
 
-  for (int fleetIndex = 0; fleetIndex < 5; fleetIndex++) {
+  for (int fleetIndex = 0; fleetIndex < board->fleetSize; fleetIndex++) {
 
     while(true) {
 
