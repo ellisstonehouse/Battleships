@@ -10,34 +10,25 @@
 #include "initGame.h"
 #include "aiMoves.h"
 
-#define TESTING_RANDOM 0
-#define RANDOM_SHOOTING 1
-#define HUNT 2
-#define HUNT_PARITY 3
-#define PROB_DENSITY 4
-
 
 int* aiMove(Board* board, int mode) {
 
   switch (mode) {
 
-  case TESTING_RANDOM:
-    return randomShooting(board);
-
-  case RANDOM_SHOOTING:
-    return randomShooting(board);
-  
-  case HUNT:
-    return hunt(board);
-  
-  case HUNT_PARITY:
-    return huntParity(board);
-  
-  case PROB_DENSITY:
-    return probabilityDensity(board);
-  
-  default:
-    return randomShooting(board);
+    case RANDOM_SHOOTING:
+      return randomShooting(board);
+    
+    case HUNT:
+      return hunt(board);
+    
+    case HUNT_PARITY:
+      return huntParity(board);
+    
+    case PROB_DENSITY:
+      return probabilityDensity(board);
+    
+    default:
+      return randomShooting(board);
   }
 }
 
@@ -46,9 +37,6 @@ int* randomShooting(Board* board) {
   int x, y;
 
   while(true) {
-
-    srand((unsigned int)clock()); // only use clock when testing
-    // srand(time(0));
 
     x = rand() % board->boardSize;
     y = rand() % board->boardSize;
@@ -240,11 +228,10 @@ int* pD_Hunt(Board* board) {
         move[0] = x;
         move[1] = y;
       }
-      printf("%d ", densityGrid[x][y]);
     }
-    printf("\n");
   }
 
+  // printHeatMap(board, densityGrid);
   
   for (int i = 0; i < board->boardSize; i++) {
     free(densityGrid[i]);
@@ -333,10 +320,27 @@ int* pD_Target(Board* board) {
         move[0] = x;
         move[1] = y;
       }
-      printf("%d ", densityGrid[x][y]);
+    }
+  }
+
+  // printHeatMap(board, densityGrid);
+
+  for (int i = 0; i < board->boardSize; i++) {
+    free(densityGrid[i]);
+  }
+  free(densityGrid);
+
+  return move;
+}
+
+
+void printHeatMap(Board* board, int** densityGrid) {
+
+  for (int x = 0; x < board->boardSize; x++) {
+    printf("\t");
+    for (int y = 0; y < board->boardSize; y++) {
+      printf("%*d ", 2, densityGrid[x][y]);
     }
     printf("\n");
   }
-
-  return move;
 }
