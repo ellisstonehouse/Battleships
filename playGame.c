@@ -12,58 +12,58 @@
 
 void playGame( Game *game ) {
 
-  printBoard2(game->userBoard, game->aiBoard);
-
   int* move;
+  int round = 1;
 
-  for (int round=1; round<=game->maxTurns; round++) {
+  Board* maskedAiBoard = maskBoard(game->aiBoard);
+  Board* maskedUserBoard = maskBoard(game->userBoard);
 
-    printf("Round %d:\n\n", round);
+  while(true) {
 
-    // -------------------------------------------
+    if (game->mode == TEST) {
+      printBoard2(game->userBoard, game->aiBoard);
+    }
+    else {
+      printBoard2(game->userBoard, maskedAiBoard);
+    }
+
+    printf("Round %d:\n\n", round++);
+
+    // ------------------------------------------
     printf("User:\n");
 
-    Board* maskedAiBoard = maskBoard(game->aiBoard);
+    move = userMove(maskedAiBoard);
 
-    move = userMove(maskedAiBoard); //takes in the masked board as arg
-
-    if (!acceptMove(game->aiBoard, maskedAiBoard, move)) { // takes in the real board here
+    if (!acceptMove(game->aiBoard, maskedAiBoard, move)) {
       printf("Error occured\n");
       break;
     }
 
-    //printBoard2(game->userBoard, maskedAiBoard);
-
-    freeBoard(maskedAiBoard);
-
     if (fleetDefeated(game->aiBoard)) {
-      printBoard2(game->userBoard, maskedAiBoard);
+      printBoard2(game->userBoard, game->aiBoard);
       printf("User has won\n");
       break;
     }
 
-    // -----------------------------------------
+    // ------------------------------------------
     printf("Opponent:\n");
 
-    Board* maskedUserBoard = maskBoard(game->userBoard);
+    move = aiMove(game->userBoard, game->algo);
 
-    move = aiMove(maskedUserBoard, game->mode);
-
-    if (!acceptMove(game->userBoard, maskedUserBoard, move)) { // takes in the real board here
+    if (!acceptMove(game->userBoard, maskedUserBoard, move)) {
       printf("Error occured\n");
       break;
     }
 
-    printBoard2(game->userBoard, game->aiBoard);
-
-    freeBoard(maskedUserBoard);
-
     if (fleetDefeated(game->userBoard)) {
+      printBoard2(game->userBoard, game->aiBoard);
       printf("AI has won\n");
       break;
     }
-
   }
+
+  freeBoard(maskedAiBoard);
+  freeBoard(maskedUserBoard);
  
   return;
 }
@@ -117,8 +117,19 @@ void printBoard2( Board* board1, Board* board2) {
   }
   printf("\n");
 
-  printf("     A:%d B:%d S:%d C:%d D:%d         ", board1->Aircraft_Carrier, board1->Battleship, board1->Submarine, board1->Cruiser, board1->Destroyer);
-  printf("     A:%d B:%d S:%d C:%d D:%d\n\n", board2->Aircraft_Carrier, board2->Battleship, board2->Submarine, board2->Cruiser, board2->Destroyer);
+
+  printf("    ");
+  for (int i=0; i<board1->fleetSize; i++) {
+    Ship* ship = board1->fleet[i];
+     printf(" %c:%d", ship->id, ship->afloat);
+  }
+  printf("             ");
+  for (int i=0; i<board2->fleetSize; i++) {
+    Ship* ship = board1->fleet[i];
+     printf(" %c:%d", ship->id, ship->afloat);
+  }
+  printf("\n\n");
+
 
   return;
 }
@@ -132,19 +143,17 @@ int* userMove(Board* board) {
 
       printf("Enter your move as row column values:\n");
 
-      int accept = scanf(" %d %d", &x, &y);
-
-      if (!accept) {
+      if (scanf(" %d %d", &x, &y) != 2) {
         printf("ERROR! Incorrect coordinates\n");
         continue;
       }
 
-      if ( x < 0 || board->boardSize < x || y < 0 || board->boardSize < y ) {
+      if ( x < 0 || board->boardSize <= x || y < 0 || board->boardSize <= y ) {
         printf("ERROR! Incorrect coordinates\n");
         continue;
       }
 
-      if (board->grid[x][y] == '*' || board->grid[x][y] == 'x') {
+      if (board->grid[x][y] == '*' || board->grid[x][y] == 'x' || board->grid[x][y] == '#') {
         printf("ERROR! Incorrect coordinates\n");
         continue;
       }
@@ -161,55 +170,65 @@ int* userMove(Board* board) {
 
 int acceptMove( Board* board, Board* maskedBoard, int* move ) {
 
-  int a=false, b=false, s=false, c=false, d=false;
+  int x = move[0];
+  int y = move[1];
 
-  // if it was a ship that it hit, do another symbol 'X' maybe ??
-  if (board->grid[move[0]][move[1]] == '*' || board->grid[move[0]][move[1]] == 'x') {
+
+  if (board->grid[x][y] == '*' || board->grid[x][y] == 'x' || board->grid[x][y] == '#') {
     return 0;
   }
-  else if (board->grid[move[0]][move[1]] == '.') {
-    board->grid[move[0]][move[1]] = 'x';
-    maskedBoard->grid[move[0]][move[1]] = 'x';
+  else if (board->grid[x][y] == '.') {
+    board->grid[x][y] = 'x';
+    maskedBoard->grid[x][y] = 'x';
+    return 1;
   }
   else {
-    board->grid[move[0]][move[1]] = '*';
-    maskedBoard->grid[move[0]][move[1]] = '*';
+    board->grid[x][y] = '*';
+    maskedBoard->grid[x][y] = '*';
   }
 
 
-  for (int x=0; x<board->boardSize; x++) {
-    for (int y=0; y<board->boardSize; y++) {
-      switch (board->grid[x][y]) {
-      case 'A': a = true; break;
-      case 'B': b = true; break;
-      case 'S': s = true; break;
-      case 'C': c = true; break;
-      case 'D': d = true; break;
-      default: break;
+  // check all afloat ships if they are instead newly sunk
+  for (int i=0; i<board->fleetSize; i++) {
+
+    Ship* ship = board->fleet[i];
+
+    // skip check if already sunk
+    if (!ship->afloat) {
+      continue;
+    }
+
+    x = ship->x;
+    y = ship->y;
+    int count = 0;
+
+    for (int k=0; k<ship->size; k++) {
+      if (ship->rotation == 'v') {
+        if (board->grid[x+k][y] != ship->id) {
+          count++;
+        }
+      }
+      else if (ship->rotation == 'h') {
+        if (board->grid[x][y+k] != ship->id) {
+          count++;
+        }
       }
     }
-  }
 
-  if (board->Aircraft_Carrier != a) {
-    // somehow got to target player name
-    printf("Airship Carrier has been sunk\n");
-    board->Aircraft_Carrier = false;
-  }
-  if (board->Battleship != b) {
-    printf("Battleship has been sunk\n");
-    board->Battleship = false;
-  }
-  if (board->Submarine != s) {
-    printf("Submarine has been sunk\n");
-    board->Submarine = false;
-  }
-  if (board->Cruiser != c) {
-    printf("Cruiser has been sunk\n");
-    board->Cruiser = false;
-  }
-  if (board->Destroyer != d) {
-    printf("Destroyer has been sunk\n");
-    board->Destroyer = false;
+    // if newly sunk, set ship to #
+    if (ship->size == count) {
+      for (int k=0; k<ship->size; k++) {
+        if (ship->rotation == 'v') {
+          board->grid[x+k][y] = '#';
+          maskedBoard->grid[x+k][y] = '#';
+        }
+        else if (ship->rotation == 'h') {
+          maskedBoard->grid[x][y+k] = '#';
+        }
+      }
+      ship->afloat = false;
+
+    }
   }
 
   return 1;
@@ -217,8 +236,10 @@ int acceptMove( Board* board, Board* maskedBoard, int* move ) {
 
 int fleetDefeated( Board* board ) {
 
-  if (board->Aircraft_Carrier || board->Battleship || board->Submarine || board->Cruiser || board->Destroyer) {
-    return 0;
+  for (int ship=0; ship<board->fleetSize; ship++) {
+    if (board->fleet[ship]->afloat) {
+      return 0;
+    }
   }
 
   return 1;
