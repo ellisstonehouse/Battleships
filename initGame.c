@@ -86,12 +86,14 @@ void initShipsChoose( Board* board) {
       printf("Rotation: Vertical(v) or Horizontal(h): ");
       if (scanf(" %c", &rotation) != 1 || (rotation != 'v' && rotation != 'h')) {
         printf("ERROR! Incorrect rotation\n");
+        clearInputBuffer();
         continue;
       }
 
       printf("Coordinates, as 'x y': ");
       if (scanf(" %d %d", &x, &y) != 2) {
         printf("ERROR! Incorrect coordinates\n");
+        clearInputBuffer();
         continue;
       }
 
@@ -220,4 +222,9 @@ void freeGame( Game *game ) {
   freeBoard(game->aiBoard);
 
   free(game);
+}
+
+void clearInputBuffer() {
+    int c;
+    while ((c = getchar()) != '\n' && c != EOF);
 }

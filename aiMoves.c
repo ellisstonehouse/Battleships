@@ -19,10 +19,10 @@ int* aiMove(Board* board, int mode) {
       return randomShooting(board);
     
     case HUNT:
-      return hunt(board);
+      return huntTarget(board);
     
     case HUNT_PARITY:
-      return huntParity(board);
+      return huntTarget_parity(board);
     
     case PROB_DENSITY:
       return probabilityDensity(board);
@@ -33,6 +33,7 @@ int* aiMove(Board* board, int mode) {
 }
 
 int* randomShooting(Board* board) {
+
   static int move[2];
   int x, y;
 
@@ -48,15 +49,14 @@ int* randomShooting(Board* board) {
     break;
   }
 
-  move[0] = x;
-  move[1] = y;
+  move[0] = x; move[1] = y;
 
   return move;
 }
 
 
 
-int* hunt(Board* board) {
+int* huntTarget(Board* board) {
 
   static int move[2];
 
@@ -92,7 +92,7 @@ int* hunt(Board* board) {
   return randomShooting(board);
 }
 
-int* huntParity(Board* board) {
+int* huntTarget_parity(Board* board) {
 
   static int move[2];
 
@@ -136,11 +136,9 @@ int* huntParity(Board* board) {
 
 int* probabilityDensity(Board* board) {
 
-  //static int move[2];
+  bool target = false;
 
-  int target = false;
-
-  // fix this selection loop
+  // if part of unsunk ship is located, target it
   for (int x = 0; x < board->boardSize; x++) {
     for (int y = 0; y < board->boardSize; y++) {
       if (board->grid[x][y] == '*') {
@@ -174,6 +172,7 @@ int* pD_Hunt(Board* board) {
       densityGrid[x][y] = 0;
     }
   }
+  
 
 
   for (int i=0; i<board->fleetSize; i++) {
@@ -188,51 +187,58 @@ int* pD_Hunt(Board* board) {
     for (int x = 0; x < board->boardSize; x++) {
       for (int y = 0; y < board->boardSize; y++) {
 
-        int x_possible = true;
-        int y_possible = true;
+        // if ship fits in x-axis, add to probability grid
+        if (x+ship->size <= board->boardSize) {
+          int x_possible = true;
 
-        for (int k = 0; k < ship->size; k++) {
-          if (board->boardSize < x+ship->size || board->grid[x+k][y] == '*' || board->grid[x+k][y] == 'x' || board->grid[x+k][y] == '#') {
-            x_possible = false;
-            break;
+          for (int k = 0; k < ship->size; k++) {
+            if (board->grid[x+k][y] == 'x' || board->grid[x+k][y] == '#') {
+              x_possible = false;
+              break;
+            }
           }
-        }
-        for (int k = 0; k < ship->size; k++) {
-          if (board->boardSize < y+ship->size || board->grid[x][y+k] == '*' || board->grid[x][y+k] == 'x' || board->grid[x][y+k] == '#') {
-            y_possible = false;
-            break;
+          if (x_possible) {
+            for (int k = 0; k < ship->size; k++) {
+              densityGrid[x+k][y]++;
+            }
           }
         }
 
-        if (x_possible) {
+        // if ship fits in y-axis, add to probability grid
+        if (y+ship->size <= board->boardSize) {
+          int y_possible = true;
+
           for (int k = 0; k < ship->size; k++) {
-            densityGrid[x+k][y]++;
+            if (board->grid[x][y+k] == 'x' || board->grid[x][y+k] == '#') {
+              y_possible = false;
+              break;
+            }
+          }
+          if (y_possible) {
+            for (int k = 0; k < ship->size; k++) {
+              densityGrid[x][y+k]++;
+            }
           }
         }
-        if (y_possible) {
-          for (int k = 0; k < ship->size; k++) {
-            densityGrid[x][y+k]++;
-          }
-        }
+
       }
     }
   }
 
-
+  // locates the square with the highest possibility, sets it as the ai's move
   int max = 0;
-
   for (int x = 0; x < board->boardSize; x++) {
     for (int y = 0; y < board->boardSize; y++) {
       if (max < densityGrid[x][y]) {
         max = densityGrid[x][y];
-        move[0] = x;
-        move[1] = y;
+        move[0] = x; move[1] = y;
       }
     }
   }
 
   // printHeatMap(board, densityGrid);
-  
+
+  // free the densityGrid
   for (int i = 0; i < board->boardSize; i++) {
     free(densityGrid[i]);
   }
@@ -270,61 +276,68 @@ int* pD_Target(Board* board) {
     for (int x = 0; x < board->boardSize; x++) {
       for (int y = 0; y < board->boardSize; y++) {
 
-        int x_possible = false;
-        int y_possible = false;
+        // if ship fits in x-axis and contains a '*', add to probability grid
+        if (x+ship->size <= board->boardSize) {
+          int x_possible = false;
 
-        for (int k = 0; k < ship->size; k++) {
-          if (board->grid[x+k][y] == '*') {
-            x_possible = true;
-          }
-          if (board->boardSize < x+ship->size || board->grid[x+k][y] == 'x' || board->grid[x+k][y] == '#') {
-            x_possible = false;
-            break;
-          }
-        }
-        for (int k = 0; k < ship->size; k++) {
-          if (board->grid[x][y+k] == '*') {
-            y_possible = true;
-          }
-          if (board->boardSize < y+ship->size || board->grid[x][y+k] == 'x' || board->grid[x][y+k] == '#') {
-            y_possible = false;
-            break;
-          }
-        }
-
-
-        if (x_possible) {
           for (int k = 0; k < ship->size; k++) {
-            if (board->grid[x+k][y] != '*') {
-              densityGrid[x+k][y]++;
+            if (board->grid[x+k][y] == '*') {
+              x_possible = true;
+            }
+            else if (board->grid[x+k][y] == 'x' || board->grid[x+k][y] == '#') {
+              x_possible = false;
+              break;
+            }
+          }
+          if (x_possible) {
+            for (int k = 0; k < ship->size; k++) {
+              if (board->grid[x+k][y] != '*') {
+                densityGrid[x+k][y]++;
+              }
             }
           }
         }
-        if (y_possible) {
+
+        // if ship fits in y-axis and contains a '*', add to probability grid
+        if (y+ship->size <= board->boardSize) {
+          int y_possible = false;
+
           for (int k = 0; k < ship->size; k++) {
-            if (board->grid[x][y+k] != '*') {
-              densityGrid[x][y+k]++;
+            if (board->grid[x][y+k] == '*') {
+              y_possible = true;
+            }
+            else if (board->grid[x][y+k] == 'x' || board->grid[x][y+k] == '#') {
+              y_possible = false;
+              break;
+            }
+          }
+          if (y_possible) {
+            for (int k = 0; k < ship->size; k++) {
+              if (board->grid[x][y+k] != '*') {
+                densityGrid[x][y+k]++;
+              }
             }
           }
         }
+
       }
     }
   }
 
+  // locates the square with the highest possibility, sets it as the ai's move
   int max = 0;
-
   for (int x = 0; x < board->boardSize; x++) {
     for (int y = 0; y < board->boardSize; y++) {
       if (max < densityGrid[x][y]) {
         max = densityGrid[x][y];
-        move[0] = x;
-        move[1] = y;
+        move[0] = x; move[1] = y;
       }
     }
   }
 
   // printHeatMap(board, densityGrid);
 
+  // free the densityGrid
   for (int i = 0; i < board->boardSize; i++) {
     free(densityGrid[i]);
   }

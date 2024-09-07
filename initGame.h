@@ -16,3 +16,5 @@ int placeShip( int ship, char rotation, int x, int y,  Board* board );
 void freeBoard(Board *board);
 
 void freeGame(Game *game);
+
+void clearInputBuffer();

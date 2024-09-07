@@ -1,14 +1,13 @@
 
 #include <stdio.h>
 #include <stdbool.h>
+#include <stdlib.h>
 
 #include "game.h"
 #include "playGame.h"
 #include "initGame.h"
 #include "aiMoves.h"
 
-#define USER 0
-#define AI 1
 
 void playGame( Game *game ) {
 
@@ -62,8 +61,20 @@ void playGame( Game *game ) {
     }
   }
 
-  freeBoard(maskedAiBoard);
-  freeBoard(maskedUserBoard);
+  for (int i = 0; i < maskedAiBoard->boardSize; i++) {
+    free(maskedAiBoard->grid[i]);
+  }
+  free(maskedAiBoard->grid);
+  free(maskedAiBoard);
+
+  for (int i = 0; i < maskedUserBoard->boardSize; i++) {
+    free(maskedUserBoard->grid[i]);
+  }
+  free(maskedUserBoard->grid);
+  free(maskedUserBoard);
+
+  // freeBoard(maskedAiBoard);
+  // freeBoard(maskedUserBoard);
  
   return;
 }
@@ -73,14 +84,14 @@ void printBoard( Board* board) {
   printf("\n");
   printf("    ");
   for (int i=0; i<board->boardSize; i++) {
-    printf("  %d", i);
+    printf(" %d", i);
   }
   printf("\n\n");
 
   for (int i=0; i<board->boardSize; i++) {
     printf(" %d  ", i);
     for (int j=0; j<board->boardSize; j++) {
-      printf("  %c", board->grid[i][j]);
+      printf(" %c", board->grid[i][j]);
     }
     printf("\n");
   }
@@ -125,7 +136,7 @@ void printBoard2( Board* board1, Board* board2) {
   }
   printf("             ");
   for (int i=0; i<board2->fleetSize; i++) {
-    Ship* ship = board1->fleet[i];
+    Ship* ship = board2->fleet[i];
      printf(" %c:%d", ship->id, ship->afloat);
   }
   printf("\n\n");
@@ -145,6 +156,7 @@ int* userMove(Board* board) {
 
       if (scanf(" %d %d", &x, &y) != 2) {
         printf("ERROR! Incorrect coordinates\n");
+        clearInputBuffer();
         continue;
       }
 
@@ -175,6 +187,7 @@ int acceptMove( Board* board, Board* maskedBoard, int* move ) {
 
 
   if (board->grid[x][y] == '*' || board->grid[x][y] == 'x' || board->grid[x][y] == '#') {
+    printf("ERROR COORDS, %d %d\n", x, y);
     return 0;
   }
   else if (board->grid[x][y] == '.') {
@@ -223,6 +236,7 @@ int acceptMove( Board* board, Board* maskedBoard, int* move ) {
           maskedBoard->grid[x+k][y] = '#';
         }
         else if (ship->rotation == 'h') {
+          board->grid[x][y+k] = '#';
           maskedBoard->grid[x][y+k] = '#';
         }
       }
