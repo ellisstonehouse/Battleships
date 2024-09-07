@@ -63,7 +63,7 @@ int* huntTarget(Board* board) {
   for (int x = 0; x < board->boardSize; x++) {
     for (int y = 0; y < board->boardSize; y++) {
 
-        if (board->grid[x][y] == '*') {
+        if (board->grid[x][y] == '*' || board->grid[x][y] == '#') {
           // Above HIT
           if (0 <= x-1 && board->grid[x-1][y] != '*' && board->grid[x-1][y] != 'x' && board->grid[x-1][y] != '#') {
             move[0] = x-1; move[1] = y;
@@ -99,7 +99,7 @@ int* huntTarget_parity(Board* board) {
   for (int x = 0; x < board->boardSize; x++) {
     for (int y = 0; y < board->boardSize; y++) {
 
-      if (board->grid[x][y] == '*') {
+      if (board->grid[x][y] == '*' || board->grid[x][y] == '#') {
         // Above HIT
         if (0 <= x-1 && board->grid[x-1][y] != '*' && board->grid[x-1][y] != 'x' && board->grid[x-1][y] != '#') {
           move[0] = x-1; move[1] = y;
