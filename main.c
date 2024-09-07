@@ -26,6 +26,7 @@ int main( int argc, char *argv[] ) {
 
   if (scanf(" %d", &algo) != 1 || algo < 0 || 4 < algo) {
     printf("ERROR! Invalid mode.\n");
+    clearInputBuffer();
     return 1;
   }
 

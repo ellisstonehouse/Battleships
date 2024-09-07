@@ -1,3 +1,5 @@
+#include <stdbool.h>
+
 #ifndef GAME_H
 #define GAME_H
 
@@ -6,8 +8,6 @@
 #define HUNT 2
 #define HUNT_PARITY 3
 #define PROB_DENSITY 4
-
-#include <stdbool.h>
 
 typedef struct _ship {
   char id;
