@@ -1,6 +1,6 @@
 # Battleships
 
-An implementation of the game Battleships with an AI opponent. The user can play against a chosen algorithm from 4, each having a higher win rate than the last. The algorithms used are [clarified here](http://www.datagenetics.com/blog/december32011/) and further mentioned in this [Vsauce2 video here](https://www.youtube.com/watch?v=LbALFZoRrw8).
+An implementation of the game Battleships with an AI opponent in C. The user can play against a chosen algorithm from 4, each having a higher win rate than the last. The algorithms used are [clarified here](http://www.datagenetics.com/blog/december32011/) and further mentioned in this [Vsauce2 video here](https://www.youtube.com/watch?v=LbALFZoRrw8).
 
 The game is set up using the basic 10x10 board with 5 ships, these amass a total ship space of 17 squares.
 - Aircraft Carrier (5 squares, A)
