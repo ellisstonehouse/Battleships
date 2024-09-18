@@ -258,6 +258,3 @@ int fleetDefeated( Board* board ) {
 
   return 1;
 }
-
-// Conceal ships function, which will take in the real board, conceal the ships and deduct whether the ships have sank or not.
-
